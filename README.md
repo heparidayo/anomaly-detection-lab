@@ -1,4 +1,4 @@
-# PyTorch Anomaly Detection Lab
+# Anomaly Detection Lab
 
 **정상 이미지로만 학습하는 작은 AutoEncoder로, 이미지 이상탐지의 전체 과정을 배우는 실습 프로젝트입니다.**
 

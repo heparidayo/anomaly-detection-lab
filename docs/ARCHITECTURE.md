@@ -77,7 +77,7 @@ test label은 평가할 때 사용하며 optimizer나 threshold 계산 함수에
 ## 폴더와 파일
 
 ```text
-pytorch-anomaly-detection-lab/
+anomaly-detection-lab/
 ├── README.md
 ├── requirements.txt
 ├── run_pipeline.py

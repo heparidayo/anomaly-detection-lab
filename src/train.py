@@ -74,4 +74,3 @@ def train_model(model, train_loader, val_loader, device, epochs, learning_rate,
     model.eval()
     print(f"Loaded best validation checkpoint: epoch {checkpoint['epoch']}")
     return history, checkpoint["epoch"]
-

@@ -1,4 +1,4 @@
-"""Image → Tensor → Batch 순서를 작은 Dataset과 DataLoader로 표현합니다。"""
+"""Image → Tensor → Batch 순서를 작은 Dataset과 DataLoader로 표현합니다."""
 
 from pathlib import Path
 
@@ -51,4 +51,3 @@ def make_loaders(data_dir, batch_size=32, image_size=128, seed=42):
             num_workers=0, generator=generator if split == "train" else None,
         )
     return loaders
-

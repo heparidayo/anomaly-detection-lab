@@ -110,4 +110,3 @@ def run_variation_experiments(model, test_dataset, device, threshold, batch_size
             print(f"Variation {kind:10s} +/-{magnitude:2d} {unit:7s} | "
                   f"Mean Score: {scores.mean():.6f} | FPR: {(scores > threshold).mean():.1%}", flush=True)
     return summary_rows, individual_rows
-

@@ -16,4 +16,3 @@ def choose_threshold(normal_val_scores, percentile=95):
 def classify(scores, threshold):
     # 1=불량, 0=정상. 경계와 정확히 같으면 정상으로 정의한다.
     return (np.asarray(scores) > threshold).astype(np.int64)
-

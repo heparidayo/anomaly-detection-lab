@@ -145,4 +145,3 @@ def plot_variations(rows, path):
             axes[row, col].grid(alpha=0.2)
     fig.suptitle("Same normal test images; model and threshold stay fixed")
     save_figure(fig, path)
-

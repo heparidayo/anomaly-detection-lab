@@ -55,10 +55,10 @@ def parse_args():
 def main():
     args = parse_args()
     root = Path(__file__).resolve().parent
-    output_dir = (args.output_dir or root / "outputs" / "smoke" if args.smoke_test
-                  else args.output_dir or root / "outputs").resolve()
-    data_dir = (args.data_dir or output_dir / "data" if args.smoke_test
-                else args.data_dir or root / "data").resolve()
+    default_output = root / "outputs" / "smoke" if args.smoke_test else root / "outputs"
+    output_dir = (args.output_dir or default_output).resolve()
+    default_data = output_dir / "data" if args.smoke_test else root / "data"
+    data_dir = (args.data_dir or default_data).resolve()
     model_dir, figures_dir, metrics_dir = [output_dir / name for name in ("models", "figures", "metrics")]
     for folder in (model_dir, figures_dir, metrics_dir):
         folder.mkdir(parents=True, exist_ok=True)
@@ -178,8 +178,9 @@ def main():
     print(f"Threshold: {threshold:.8f} (validation normal {args.percentile:g} percentile)")
     for key in ("accuracy", "precision", "recall", "f1", "auroc"):
         value = metrics[key]
-        print(f"{key.upper() if key in ('f1', 'auroc') else key.capitalize()}: "
-              f"{value:.4f}" if value is not None else f"{key.upper()}: unavailable")
+        name = key.upper() if key in ("f1", "auroc") else key.capitalize()
+        formatted = f"{value:.4f}" if value is not None else "unavailable"
+        print(f"{name}: {formatted}")
     print(f"False Positive: {metrics['fp']}")
     print(f"False Negative: {metrics['fn']}")
     print(f"Average inference time: {timing['mean_ms_per_image']:.3f} ms/image ({timing['device_name']})")
@@ -190,4 +191,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-

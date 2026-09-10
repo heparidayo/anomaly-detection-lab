@@ -95,4 +95,3 @@ if __name__ == "__main__":
     args = parser.parse_args()
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(json.dumps(predict_image(args.image, args.model, device), indent=2))
-

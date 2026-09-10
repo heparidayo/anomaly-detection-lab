@@ -6,7 +6,7 @@ Python과 NumPy를 써 봤지만 딥러닝 모델의 학습부터 평가까지�
 합성 자동차 부품 이미지를 직접 만들기 때문에 기업 데이터나 사전 학습 모델 없이 시작할 수 있습니다.
 
 [구조와 코드 흐름](docs/ARCHITECTURE.md) · [개념 20개와 실습 6개](docs/LEARNING_GUIDE.md) ·
-[실험 기록](docs/EXPERIMENTS.md) · [설명·발표 진행안](docs/TEACHING_NOTES.md)
+[실험 기록](docs/EXPERIMENTS.md) · [설명 가이드](docs/TEACHING_NOTES.md)
 
 ```text
 정상 이미지 → Dataset / DataLoader → AutoEncoder 학습
@@ -105,7 +105,7 @@ smoke test의 데이터와 결과는 모두 `outputs/smoke/` 아래에 따로 �
 
 모르는 개념은 [학습 가이드](docs/LEARNING_GUIDE.md)에서 찾아보고,
 직접 수정한 결과는 [실험 템플릿](docs/EXPERIMENTS.md#template)에 기록하세요.
-다른 사람에게 설명할 때는 [15분 진행안](docs/TEACHING_NOTES.md)을 활용할 수 있습니다.
+이상탐지가 처음인 스터디원이나 친구에게 설명하려면 [설명 가이드](docs/TEACHING_NOTES.md)를 참고하세요.
 
 ## 결과 미리보기
 

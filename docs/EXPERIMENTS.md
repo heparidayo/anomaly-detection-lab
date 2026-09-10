@@ -1,6 +1,6 @@
 # 정상 편차 실험 기록
 
-[README](../README.md) · [전체 구조](ARCHITECTURE.md) · [학습 가이드](LEARNING_GUIDE.md) · [실험 기록](EXPERIMENTS.md) · [발표 진행안](TEACHING_NOTES.md)
+[README](../README.md) · [전체 구조](ARCHITECTURE.md) · [학습 가이드](LEARNING_GUIDE.md) · [실험 기록](EXPERIMENTS.md) · [설명 가이드](TEACHING_NOTES.md)
 
 [기준 실험](#reference-run) · [재실행과 검증](#validation) · [빈 기록 템플릿](#template)
 

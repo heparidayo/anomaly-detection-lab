@@ -1,6 +1,6 @@
 # 처음 읽는 PyTorch 이상탐지 학습 가이드
 
-[README](../README.md) · [전체 구조](ARCHITECTURE.md) · [학습 가이드](LEARNING_GUIDE.md) · [실험 기록](EXPERIMENTS.md) · [발표 진행안](TEACHING_NOTES.md)
+[README](../README.md) · [전체 구조](ARCHITECTURE.md) · [학습 가이드](LEARNING_GUIDE.md) · [실험 기록](EXPERIMENTS.md) · [설명 가이드](TEACHING_NOTES.md)
 
 먼저 `python run_pipeline.py --smoke-test`를 실행해 파일이 생기는 것을 확인하세요.
 이후 [run_pipeline.py](../run_pipeline.py) / `main()`의 단계 번호를 따라 각 함수를 찾아가면 됩니다.

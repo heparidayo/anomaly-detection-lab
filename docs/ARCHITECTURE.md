@@ -1,6 +1,6 @@
 # 전체 구조와 코드 읽는 순서
 
-[README](../README.md) · [전체 구조](ARCHITECTURE.md) · [학습 가이드](LEARNING_GUIDE.md) · [실험 기록](EXPERIMENTS.md) · [발표 진행안](TEACHING_NOTES.md)
+[README](../README.md) · [전체 구조](ARCHITECTURE.md) · [학습 가이드](LEARNING_GUIDE.md) · [실험 기록](EXPERIMENTS.md) · [설명 가이드](TEACHING_NOTES.md)
 
 이 프로젝트의 목표는 작은 모델로 **데이터 준비 → 학습 → 추론 → 평가**를 직접 경험하는 것입니다.
 네트워크 접속, 기업 데이터, 사전 학습 가중치 없이 설치 후 전체 데모를 실행합니다.

@@ -1,24 +1,39 @@
-# 자동차 부품 이미지 이상탐지 입문
+# PyTorch Anomaly Detection Lab
 
-## 1. Python 가상환경 만들기
+**정상 이미지로만 학습하는 작은 AutoEncoder로, 이미지 이상탐지의 전체 과정을 배우는 실습 프로젝트입니다.**
 
-Python 3.10~3.12를 설치하고 이 프로젝트 폴더에서 실행합니다.
+Python과 NumPy를 써 봤지만 딥러닝 모델의 학습부터 평가까지는 처음인 학습자를 대상으로 합니다.
+합성 자동차 부품 이미지를 직접 만들기 때문에 기업 데이터나 사전 학습 모델 없이 시작할 수 있습니다.
+
+[구조와 코드 흐름](docs/ARCHITECTURE.md) · [개념 20개와 실습 6개](docs/LEARNING_GUIDE.md) ·
+[실험 기록](docs/EXPERIMENTS.md) · [설명·발표 진행안](docs/TEACHING_NOTES.md)
+
+```text
+정상 이미지 → Dataset / DataLoader → AutoEncoder 학습
+새 이미지   → 복원 오차(MSE) → 정상 validation으로 정한 임계값 → 정상 / 불량 → FP·FN 분석
+```
+
+## 1. 가상환경 만들기
+
+Python **3.10~3.12**를 준비합니다. 이 저장소를 clone하거나 ZIP으로 내려받은 뒤,
+`run_pipeline.py`가 있는 폴더에서 시작하세요.
+
+**Windows · PowerShell**
 
 ```powershell
-# Windows PowerShell
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 ```
 
+**Linux · bash**
+
 ```bash
-# Linux
 python3 -m venv .venv
 source .venv/bin/activate
 ```
 
-PowerShell에서 활성화가 차단되면 실행 정책을 바꾸지 않아도 됩니다.
-이후 명령의 `python` 대신 `.\.venv\Scripts\python.exe`를 사용하세요.
-이 작업 환경에는 이미 `.venv`를 만들어 두었으므로 바로 아래 실행 명령을 사용할 수 있습니다.
+PowerShell에서 활성화가 차단되면, 아래 명령의 `python` 대신
+`.\.venv\Scripts\python.exe`를 사용해도 됩니다.
 
 ## 2. 의존성 설치
 
@@ -27,128 +42,103 @@ python -m pip install --upgrade pip
 python -m pip install -r requirements.txt
 ```
 
-PyTorch와 torchvision은 서로 맞는 버전인 2.7.1 / 0.22.1을 사용합니다.
-CPU 전용 설치가 필요하면 requirements 설치 전에 다음을 실행할 수 있습니다.
+PyTorch · torchvision · NumPy · Pillow · matplotlib · scikit-learn을 사용합니다.
+CUDA를 사용할 수 있으면 GPU, 없으면 CPU에서 실행됩니다. 설치 후 데모 실행에는 네트워크가 필요하지 않습니다.
+
+<details>
+<summary>CPU 전용 / NVIDIA GPU용 PyTorch 설치</summary>
+
+새 가상환경에서는 아래 명령 중 자신의 환경에 맞는 것을 **requirements 설치 전에** 실행할 수 있습니다.
+torch 2.7.1과 torchvision 0.22.1은 이 프로젝트에서 검증한 버전 조합입니다.
 
 ```bash
+# CPU 전용
 python -m pip install torch==2.7.1 torchvision==0.22.1 --index-url https://download.pytorch.org/whl/cpu
-```
 
-NVIDIA GPU를 쓰려면 GPU 드라이버에 맞는 PyTorch CUDA 빌드가 필요합니다.
-이 프로젝트의 실제 검증 환경은 CUDA 12.8 빌드였습니다.
-
-```bash
+# NVIDIA GPU: CUDA 12.8을 지원하는 드라이버가 있는 환경
 python -m pip install torch==2.7.1 torchvision==0.22.1 --index-url https://download.pytorch.org/whl/cu128
 ```
 
-환경별 설치 선택은 [PyTorch 공식 설치 안내](https://pytorch.org/get-started/locally/)를 참고하세요.
-코드는 `torch.cuda.is_available()`로 GPU 사용 가능 여부를 확인하며 없으면 CPU를 사용합니다.
-패키지 설치 후에는 데이터 다운로드나 모델 다운로드 없이 동작합니다.
+이미 다른 빌드가 설치돼 있다면 선택한 명령에 `--force-reinstall`을 추가해 교체하세요.
+그다음 `python -m pip install -r requirements.txt`로 나머지를 설치합니다.
+다른 CUDA 조합은 [PyTorch 공식 2.7.1 설치 안내](https://pytorch.org/get-started/previous-versions/)를 참고하세요.
 
-## 3. 전체 실행 명령
+</details>
 
-```bash
-python run_pipeline.py
-```
+## 3. 실행하기
 
-Windows에서 가상환경을 활성화하지 않고 바로 실행하려면:
-
-```powershell
-.\.venv\Scripts\python.exe run_pipeline.py
-```
-
-기본값: 128×128 RGB, 학습 정상 500장, validation 정상 100장,
-test 정상 100장/불량 100장, 15 epoch, batch size 32, Adam lr=0.001, seed=42.
-15 epoch 중 validation loss가 가장 낮은 모델을 최종 평가합니다.
-CPU에서는 시간이 더 걸릴 수 있습니다.
-
-빠른 동작 확인:
+먼저 작은 데이터와 **3 epoch**로 전체 흐름을 확인합니다.
 
 ```bash
 python run_pipeline.py --smoke-test
 ```
 
-정상 학습 80장, validation 20장, test 정상/불량 각 20장, 3 epoch로 실행합니다.
-smoke 데이터와 결과는 `outputs/smoke/`에 분리하여 기본 데이터와 결과를 덮어쓰지 않습니다.
-
-## 4. 생성되는 결과
-
-- `data/train/normal/`, `data/val/normal/`, `data/test/normal/`, `data/test/anomaly/`: 합성 부품 PNG.
-- `data/dataset_info.json`: 데이터 생성 조건.
-- `outputs/models/autoencoder.pt`: 가장 좋은 validation epoch의 가중치와 threshold.
-- `outputs/metrics/training_history.csv`: epoch별 train/validation loss.
-- `outputs/metrics/validation_scores.csv`: threshold 계산에 사용한 정상 점수.
-- `outputs/metrics/test_scores.csv`: 모든 test 이미지의 점수·정답·판정·TP/TN/FP/FN.
-- `outputs/metrics/threshold_comparison.csv`: 90/95/99 percentile 및 고정값 0.01 예시 비교.
-- `outputs/metrics/defect_breakdown.csv`: 결함 종류별 Recall과 FN.
-- `outputs/metrics/normal_variation.csv`: 편차 단계별 평균 점수와 FPR.
-- `outputs/metrics/variation_scores.csv`: 각 변형 이미지의 원본 경로·변화량·점수.
-- `outputs/metrics/final_metrics.json`: 최종 지표·실행 조건·환경 버전.
-- `outputs/metrics/inference_time.json`: 장치와 batch=1 추론 시간·측정 범위.
-- `outputs/figures/`: training_loss, score_histogram, confusion_matrix, roc_curve,
-  sample_reconstruction, error_heatmap, normal_variation PNG 7개.
-
-PNG는 matplotlib으로 저장하며 별도 웹 UI나 서버를 사용하지 않습니다.
-그림의 라벨은 OS별 한글 폰트 문제를 피하기 위해 영어로 표기합니다.
-생성 데이터·모델·결과와 가상환경은 Git에서 제외하고 소스와 학습 문서를 커밋합니다.
-
-## 5. 코드 공부 권장 순서
-
-1. `docs/ARCHITECTURE.md`로 전체 흐름을 봅니다.
-2. `src/generate_dataset.py` → `src/dataset.py`에서 이미지가 Tensor가 되는 과정을 읽습니다.
-3. `src/model.py` → `src/train.py`에서 모델과 학습 루프를 읽습니다.
-4. `src/inference.py` → `src/threshold.py`에서 점수와 판정을 읽습니다.
-5. `src/evaluate.py` → `src/visualize.py`에서 결과 해석을 읽습니다.
-6. `run_pipeline.py`로 전체 실행을 연결합니다.
-7. `docs/LEARNING_GUIDE.md`의 20개 질문과 6개 실습, `docs/EXPERIMENTS.md`의 기록 양식을 사용합니다.
-
-## 이 baseline이 하는 일
-
-정상 이미지만 복원하도록 작은 CNN AutoEncoder를 학습합니다.
-이미지별 `mean((x - x_hat)**2)`가 validation normal의 95 percentile보다 크면 불량으로 판정합니다.
-이는 산업용 최신 최고 성능 모델이 아니라 전체 학습 사이클을 이해하기 위한 교육용 baseline입니다.
-불량도 잘 복원하거나 정상의 촬영 편차를 불량으로 오판할 수 있습니다.
-합성 데이터의 점수로 실제 자동차 부품 검사 성능을 주장할 수 없습니다.
-
-## 실행 옵션과 새 이미지 추론
+이후 기본 데이터 **800장 · 15 epoch**로 실행합니다.
 
 ```bash
-python run_pipeline.py --help
-python run_pipeline.py --epochs 5 --output-dir outputs/epoch5
-python run_pipeline.py --device cpu --smoke-test --output-dir outputs/cpu_smoke
-python run_pipeline.py --percentile 90 --output-dir outputs/p90
-python run_pipeline.py --quiet-scores
-python -m src.inference data/test/anomaly/scratch_0000.png
+python run_pipeline.py
 ```
 
-기본 실행은 validation/test의 모든 이미지 점수를 콘솔에 출력합니다.
-`--quiet-scores`는 콘솔만 줄이며 CSV는 그대로 저장합니다.
-단일 추론은 모델에 저장된 해상도·threshold를 사용하고 가중치를 다시 학습하지 않습니다.
-다른 실행 결과를 쓸 때는 `--model outputs/epoch5/models/autoencoder.pt`를 지정하세요.
+기본 데이터 구성은 학습 정상 500장, validation 정상 100장, test 정상/불량 각 100장입니다.
+smoke test는 각각 80/20/20/20장을 사용합니다.
+CPU에서는 실행 시간이 더 걸릴 수 있습니다. 모든 개별 점수는 CSV로도 남으며,
+`--quiet-scores`를 붙이면 콘솔 출력을 줄일 수 있습니다.
 
-데이터가 네 폴더 모두에 있으면 재생성하지 않습니다.
-일부 폴더만 채워져 있으면 오류를 내어 기존 이미지에 합성 데이터를 섞지 않습니다.
-데이터 생성 코드를 바꾸거나 생성 seed를 바꿀 때는 새 빈 경로를 지정하세요.
+## 4. 무엇이 만들어지나요?
 
-```bash
-python run_pipeline.py --seed 123 --data-dir data/seed123 --output-dir outputs/seed123
-```
+- **데이터:** `data/`에 128×128 RGB 부품 이미지와 생성 조건.
+- **모델:** `outputs/models/autoencoder.pt`에 가중치·해상도·임계값.
+- **점수·지표:** `outputs/metrics/`에 이미지별 판정, 임계값 비교, 편차 실험 CSV와 실행 조건 JSON.
+- **그림 7개:** `outputs/figures/`에 loss, 점수 분포, confusion matrix, ROC, 복원 비교, error heatmap, 정상 편차 그래프.
 
-생성되는 형상은 128×128 좌표를 기준으로 하며 다른 해상도에서는 리사이즈합니다.
-`--image-size 64`처럼 16의 배수인 해상도를 지원합니다.
-기존 데이터도 입력 단계에서 지정 해상도로 맞춥니다.
-`--latent-channels`는 압축 표현의 채널 수를 바꿉니다.
-여러 실험은 서로 다른 `--output-dir`에 저장하세요. 같은 출력 경로로 재실행하면 그 경로의 결과를 갱신합니다.
+smoke test의 데이터와 결과는 모두 `outputs/smoke/` 아래에 따로 생성됩니다.
+[결과 파일별 읽는 법](docs/ARCHITECTURE.md#outputs)과
+[저장한 모델로 이미지 한 장 판정하기](docs/ARCHITECTURE.md#single-image)를 이어서 보세요.
 
-기업 데이터로 바꿀 때도 같은 네 폴더 구성을 사용하고 `--data-dir`를 지정하면 됩니다.
-정상/불량 기준은 사람이 정해야 하며, 학습 정상에 불량이 섞이지 않았는지 확인해야 합니다.
-결함 종류별 표는 합성 파일명 규칙 `종류_번호.png`를 해석하므로 다른 파일명은 직접 분류 체계를 맞춰야 합니다.
-실제 이미지를 쓴 정상 편차 실험의 배경 채움은 왼쪽 위 5×5 영역의 평균값을 사용하므로
-그 영역이 배경이 아닌 사진에서는 실험 변환 코드를 조정해야 합니다.
+## 5. 어떤 순서로 읽으면 좋을까요?
 
-## 실제 검증 기록
+1. [전체 구조](docs/ARCHITECTURE.md): 이미지가 판정 결과가 되는 흐름을 먼저 봅니다.
+2. [데이터 생성](src/generate_dataset.py) → [Dataset](src/dataset.py): 정상 편차와 불량, Tensor와 Batch를 구분합니다.
+3. [모델](src/model.py) → [학습](src/train.py): shape 변화와 가중치 업데이트 다섯 줄을 읽습니다.
+4. [추론](src/inference.py) → [임계값](src/threshold.py) → [평가](src/evaluate.py): 점수와 판정, 오검과 미검을 연결합니다.
+5. [시각화](src/visualize.py) → [전체 실행](run_pipeline.py): 결과를 저장하고 해석하는 순서를 확인합니다.
 
-기본 실행과 smoke test의 실제 수치는 `docs/EXPERIMENTS.md`에 기록합니다.
-추론 시간은 warm-up 10회 후 50회 반복한 **모델 forward + MSE** 평균입니다.
-이미지 읽기, 전처리, GPU 전송, 카메라 촬영, PLC 통신, 배출기 동작 시간은 포함하지 않습니다.
-따라서 이 시간만으로 제조 라인의 전체 cycle time을 충족한다고 판단하면 안 됩니다.
+모르는 개념은 [학습 가이드](docs/LEARNING_GUIDE.md)에서 찾아보고,
+직접 수정한 결과는 [실험 템플릿](docs/EXPERIMENTS.md#template)에 기록하세요.
+다른 사람에게 설명할 때는 [15분 진행안](docs/TEACHING_NOTES.md)을 활용할 수 있습니다.
+
+## 결과 미리보기
+
+정상 이미지로 입력을 복원하도록 학습한 뒤, 이미지별 `mean((x - x_hat) ** 2)`를 점수로 사용합니다.
+정상 validation 점수의 **95 percentile**보다 크면 불량으로 판정합니다.
+
+![정상과 불량의 점수 분포 및 validation 95 percentile 임계값](docs/assets/score_histogram.png)
+
+2026-09-10의 기준 실험: 정상/불량 각 100장, seed 42, 15 epoch, RTX 4060 Laptop GPU.
+
+- Accuracy **0.7900** · Precision **0.9143** · Recall **0.6400** · F1 **0.7529** · AUROC **0.8204**
+- 정상 오검 **6장** · 불량 미검 **36장** · 임계값 **0.00280537**
+- 모델 forward + MSE 평균 **1.460 ms/장**. 이미지 로딩·전처리·GPU 전송은 제외했습니다.
+
+**구멍 누락 25장은 모두 놓쳤습니다.**
+또한 정상 이미지에 밝기 편차 ±20%를 추가하자 오검률이 98%까지 올라갔습니다.
+이 프로젝트에서는 잘 맞힌 결과와 함께 **어떤 가정이 실패하는지**도 관찰합니다.
+
+[복원 비교 그림](docs/assets/sample_reconstruction.png) ·
+[정상 편차 그래프](docs/assets/normal_variation.png) ·
+[실험 조건과 해석](docs/EXPERIMENTS.md#reference-run) ·
+[기준 지표 JSON](docs/assets/reference_metrics.json)
+
+위 그림과 지표는 저장소에 포함된 설명용 스냅샷입니다.
+직접 실행한 최신 결과는 `outputs/`에 저장되며, 장치·버전·seed에 따라 수치가 달라질 수 있습니다.
+
+## 학습 범위
+
+작은 Convolutional AutoEncoder와 순수 PyTorch 학습 루프로 전체 사이클을 이해하는 것이 목표입니다.
+train과 validation에는 정상만 사용하고 test 정답은 평가에만 사용합니다.
+정상 이미지에도 위치·회전·밝기·색·크기·잡음 편차를 넣고,
+불량은 스크래치·구멍 누락·모서리 파손·얼룩 네 종류로 만듭니다.
+
+교육용 baseline이므로 실제 제조 검사의 성능이나 처리 시간을 보장하지 않습니다.
+웹 UI, API 서버, 데이터베이스, 고수준 학습 프레임워크는 사용하지 않습니다.
+실제 데이터로 바꾸거나 실행 옵션을 조정하려면 [데이터·실행 안내](docs/ARCHITECTURE.md#running)를 참고하세요.

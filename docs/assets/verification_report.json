@@ -1,0 +1,13 @@
+{
+  "status": "passed",
+  "checks": [
+    "Per-image MSE, strict threshold boundary, percentile and invalid scores",
+    "Hand-calculated confusion counts, metrics and one-class AUROC handling",
+    "Model shapes at 64/128 pixels and latent channels 8/64",
+    "800 valid RGB images, correct split sizes, no exact duplicates or split leakage",
+    "Dataset reproducibility, split-independent seeds, reuse and incomplete-data protection",
+    "Saved checkpoint reload, single-image CPU inference and CSV/JSON metric agreement",
+    "Threshold FP/FN monotonicity, constant AUROC, paired variation scores and zero-variation baseline",
+    "Default run, GPU smoke and CPU smoke: 21 valid figures and finite warmed batch=1 timings"
+  ]
+}

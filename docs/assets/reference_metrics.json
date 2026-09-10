@@ -1,0 +1,86 @@
+{
+  "config": {
+    "smoke_test": false,
+    "data_dir": "data",
+    "output_dir": "outputs",
+    "epochs": 15,
+    "batch_size": 32,
+    "learning_rate": 0.001,
+    "image_size": 128,
+    "latent_channels": 64,
+    "percentile": 95,
+    "seed": 42,
+    "device": "auto",
+    "quiet_scores": false
+  },
+  "dataset_info": {
+    "seed": 42,
+    "image_size": 128,
+    "counts": {
+      "train/normal": 500,
+      "val/normal": 100,
+      "test/normal": 100,
+      "test/anomaly": 100
+    },
+    "normal_variation": {
+      "position_px": 5,
+      "rotation_degrees": 3,
+      "brightness_fraction": 0.08,
+      "color_rgb_offset": 6,
+      "noise_std_uint8": 1.5,
+      "scale_fraction": 0.04
+    },
+    "defect_types": [
+      "scratch",
+      "missing_hole",
+      "broken_edge",
+      "dark_stain"
+    ]
+  },
+  "actual_counts": {
+    "train": 500,
+    "val": 100,
+    "test": 200
+  },
+  "best_epoch": 15,
+  "metrics": {
+    "threshold": 0.0028053712332621215,
+    "tp": 64,
+    "tn": 94,
+    "fp": 6,
+    "fn": 36,
+    "precision": 0.9142857142857143,
+    "recall": 0.64,
+    "f1": 0.7529411764705882,
+    "accuracy": 0.79,
+    "auroc": 0.8204,
+    "false_positive_rate": 0.06
+  },
+  "inference_timing": {
+    "device": "cuda",
+    "device_name": "NVIDIA GeForce RTX 4060 Laptop GPU",
+    "batch_size": 1,
+    "warmup": 10,
+    "repeats": 50,
+    "mean_ms_per_image": 1.4596479997271672,
+    "std_ms_per_image": 0.8399775951060477,
+    "scope": "forward + MSE; excludes image loading, preprocessing and device transfer"
+  },
+  "environment": {
+    "python": "3.12.14",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "torch": "2.7.1+cu128",
+    "cuda_runtime": "12.8",
+    "cpu_threads": 4,
+    "torchvision": "0.22.1+cu128",
+    "numpy": "2.5.2",
+    "Pillow": "12.3.0",
+    "matplotlib": "3.11.1",
+    "scikit-learn": "1.9.0"
+  },
+  "documentation_snapshot": {
+    "run_date": "2026-09-10",
+    "source_commit": "0946cfb90490fc0cbf8d6172dd1de62417b2fc0c",
+    "path_note": "Local absolute paths were replaced with project-relative paths; measurements are unchanged."
+  }
+}

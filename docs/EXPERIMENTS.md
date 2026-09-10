@@ -1,70 +1,28 @@
 # 정상 편차 실험 기록
 
-이 문서는 같은 형식으로 실험을 반복해서 기록하기 위한 양식과 실제 기본 실행 결과입니다.
-CSV 원본과 함께 읽고, 결과를 보고 나중에 가설을 맞춰 쓰지 마세요.
+[README](../README.md) · [전체 구조](ARCHITECTURE.md) · [학습 가이드](LEARNING_GUIDE.md) · [실험 기록](EXPERIMENTS.md) · [발표 진행안](TEACHING_NOTES.md)
 
-## 복사해서 쓰는 실험 템플릿
+[기준 실험](#reference-run) · [재실행과 검증](#validation) · [빈 기록 템플릿](#template)
 
-### 실험 목적
+먼저 완료된 실험을 읽어 결과 해석 방식을 살펴보고, 새 실험은 아래 템플릿을 복사해 기록하세요.
+가설은 실행 전에 적고, 예상과 다른 결과도 함께 남깁니다.
 
-- 알아보고 싶은 질문:
-- 어떤 정상 편차와 실제 불량을 구분하려는가:
-- 현장 정상 허용 범위가 있다면 그 근거:
+`assets/`의 그림과 CSV/JSON은 이 문서의 **고정된 기준 결과**입니다.
+`outputs/`는 저장소에 포함되지 않으며, 직접 실행하면 자신의 결과가 생성됩니다.
+파이프라인은 PNG와 CSV/JSON을 저장합니다. 콘솔 로그 파일은 자동 저장하지 않습니다.
 
-### 가설
-
-- 실행 전에 예상한 변화:
-- 가설이 맞지 않았다고 판단할 관찰 결과:
-
-### 독립변수
-
-- 바꿀 편차 종류: brightness / position / rotation
-- 각 단계와 단위:
-- 기존 편차에 추가하는 양인지, 총 편차 범위인지:
-- +방향/-방향 적용 방식:
-
-### 종속변수
-
-- 평균 anomaly score:
-- False Positive Rate = FP / 정상 이미지 수:
-- 필요하다면 방향별 score/FPR:
-
-### 통제 조건
-
-- 실행 명령과 날짜:
-- 데이터 경로·생성 seed·split별 이미지 수:
-- 정상 원본 이미지 목록:
-- model checkpoint·선택 epoch·입력 해상도·latent shape:
-- threshold와 보정에 쓴 validation 경로:
-- CPU/GPU·Python·PyTorch 버전:
-- 배치 크기·보간 방식·배경 채움:
-- 새 학습을 했는지, 기존 모델을 고정했는지:
-
-### 결과
-
-각 단계마다 아래 블록을 복사합니다.
-
-- 편차 종류와 크기:
-- 정상 원본 수 / 평가한 변형본 수:
-- 평균 anomaly score:
-- FP 수 / FPR:
-- CSV 및 그림 경로:
-- 대표 FP 원본 경로와 관찰:
-
-### 해석
-
-- 예상한 구간과 실제 오검이 늘어난 구간:
-- 결과가 가설을 지지하는지:
-- 같은 현상을 설명할 다른 이유:
-- 보간, 밝기 clipping, 부품 잘림, 작은 표본 등 실험의 한계:
-- 이 결과만으로 말할 수 없는 것:
-- 다음에 한 가지 더 바꿔 확인할 변수:
+<a id="reference-run"></a>
 
 ## 실제 검증: 기본 15 epoch 실행
 
 실행 날짜: 2026-09-10, Windows 11.
 명령: `python run_pipeline.py` (프로젝트 `.venv`에서 실행).
-전체 로그: `outputs/full_run.log`.
+[기준 지표 JSON](assets/reference_metrics.json) ·
+[학습 loss CSV](assets/training_history.csv) · [threshold 비교 CSV](assets/threshold_comparison.csv) ·
+[결함별 CSV](assets/defect_breakdown.csv) · [편차 CSV](assets/normal_variation.csv).
+
+실행 코드 기준 커밋: `0946cfb90490fc0cbf8d6172dd1de62417b2fc0c`.
+JSON 사본의 로컬 절대 경로만 프로젝트 상대 경로로 바꾸었으며, 측정값은 변경하지 않았습니다.
 
 ### 실험 목적
 
@@ -133,6 +91,8 @@ Threshold 비교:
   Precision 0, Recall 0, F1 0, Accuracy 0.50.
 - 같은 score를 쓰므로 모든 행의 AUROC는 0.8204로 같습니다.
 
+![같은 정상 이미지에 추가 편차를 적용한 평균 점수와 오검률](assets/normal_variation.png)
+
 정상 편차별 평균 score / FPR:
 
 - 기준 0 변화: **0.002210 / 6%**.
@@ -178,6 +138,8 @@ bilinear 보간으로 경계와 잡음이 부드러워지는 것이 가능한 �
 기업 데이터, 실제 허용 공차, 실제 불량 비율의 성능으로 일반화할 수 없습니다.
 성능을 보고 기본값을 바꾸는 추가 튜닝은 하지 않았습니다.
 
+<a id="validation"></a>
+
 ## Smoke test와 추가 검증
 
 GPU smoke:
@@ -188,7 +150,7 @@ GPU smoke:
 - FP 2, FN 18. 추론 평균 0.625 ms/image (CUDA).
 - 모델 저장, inference, threshold, metrics, 편차 실험, PNG 7개 생성 완료.
 - 짧은 학습의 동작 검증이며 성능 기준을 만족했다는 뜻은 아닙니다.
-- 결과: `outputs/smoke/`.
+- 재실행 결과 경로: `outputs/smoke/`.
 
 CPU smoke:
 `python run_pipeline.py --smoke-test --device cpu --epochs 2 --output-dir outputs/cpu_smoke --quiet-scores`.
@@ -197,11 +159,12 @@ CPU smoke:
 - Accuracy 0.55, Precision 1.00, Recall 0.10, F1 0.1818, AUROC 0.5350.
 - FP 0, FN 18. 추론 평균 4.135 ms/image (CPU).
 - 전체 파이프라인과 PNG 7개 생성 완료.
-- 결과: `outputs/cpu_smoke/`, 로그: `outputs/cpu_smoke.log`.
+- 재실행 결과 경로: `outputs/cpu_smoke/`.
 - 학습 횟수가 다르므로 GPU smoke와 성능 우열을 비교하는 실험이 아닙니다.
 
 독립 기대값으로 다음 8개 검증 그룹도 통과했습니다.
-기록은 `outputs/metrics/verification_report.json`에 있습니다.
+개발 당시의 [검증 기록 사본](assets/verification_report.json)을 포함했습니다.
+이 기록은 당시 확인 결과이며, 아래 목록이 별도의 자동 테스트 명령으로 제공되는 것은 아닙니다.
 
 1. 이미지별 MSE, score=threshold 경계 처리, percentile, 잘못된 validation score 거부.
 2. 손으로 계산한 TP/TN/FP/FN 및 Precision/Recall/F1/Accuracy/AUROC와 일치.
@@ -223,3 +186,62 @@ Linux용 경로 처리와 실행 방식도 제공하지만 이 환경에서 Linu
 학습 데이터 생성 범위를 바꾸는 실험에서는 기존 생성 파일이 재사용되지 않도록 새 데이터 경로를 사용하세요.
 새롭게 생성된 validation/test까지 함께 달라졌는지도 기록해야 비교를 올바르게 해석할 수 있습니다.
 결과가 기대와 다르더라도 점수·FP/FN·복원 예시를 먼저 확인하고 이유를 가설로 남기세요.
+
+<a id="template"></a>
+
+## 복사해서 쓰는 실험 템플릿
+
+### 실험 목적
+
+- 알아보고 싶은 질문:
+- 어떤 정상 편차와 실제 불량을 구분하려는가:
+- 현장 정상 허용 범위가 있다면 그 근거:
+
+### 가설
+
+- 실행 전에 예상한 변화:
+- 가설이 맞지 않았다고 판단할 관찰 결과:
+
+### 독립변수
+
+- 바꿀 편차 종류: brightness / position / rotation
+- 각 단계와 단위:
+- 기존 편차에 추가하는 양인지, 총 편차 범위인지:
+- +방향/-방향 적용 방식:
+
+### 종속변수
+
+- 평균 anomaly score:
+- False Positive Rate = FP / 정상 이미지 수:
+- 필요하다면 방향별 score/FPR:
+
+### 통제 조건
+
+- 실행 명령과 날짜:
+- 데이터 경로·생성 seed·split별 이미지 수:
+- 정상 원본 이미지 목록:
+- model checkpoint·선택 epoch·입력 해상도·latent shape:
+- threshold와 보정에 쓴 validation 경로:
+- CPU/GPU·Python·PyTorch 버전:
+- 배치 크기·보간 방식·배경 채움:
+- 새 학습을 했는지, 기존 모델을 고정했는지:
+
+### 결과
+
+각 단계마다 아래 블록을 복사합니다.
+
+- 편차 종류와 크기:
+- 정상 원본 수 / 평가한 변형본 수:
+- 평균 anomaly score:
+- FP 수 / FPR:
+- CSV 및 그림 경로:
+- 대표 FP 원본 경로와 관찰:
+
+### 해석
+
+- 예상한 구간과 실제 오검이 늘어난 구간:
+- 결과가 가설을 지지하는지:
+- 같은 현상을 설명할 다른 이유:
+- 보간, 밝기 clipping, 부품 잘림, 작은 표본 등 실험의 한계:
+- 이 결과만으로 말할 수 없는 것:
+- 다음에 한 가지 더 바꿔 확인할 변수:
